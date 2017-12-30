@@ -14,6 +14,7 @@
 class Graph;
 class Node;
 
+using thread_t = unsigned long;
 using method_t = unsigned int;
 using index_t = unsigned long;
 using weight_t = unsigned long;

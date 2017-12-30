@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include <unordered_set>
+#include <thread>
 #include "Graph.hpp"
 #include "blimit.hpp"
 
@@ -110,7 +111,7 @@ bool Graph::isValid() {
     return true;
 }
 
-void Graph::runAlgorithm(method_t method) {
+void Graph::runAlgorithm(method_t method, thread_t possibleThreads) {
     indexes.clear();
     temporaryIndexes.clear();
 
@@ -120,7 +121,28 @@ void Graph::runAlgorithm(method_t method) {
 
     setBValues(method);
     while (!indexes.empty()) {
-        runAlgorithmIteration(indexes.begin(), indexes.end());
+        thread_t numberOfThreads = std::min(possibleThreads, indexes.size());
+        index_t numberOfNodes = indexes.size() / numberOfThreads;
+
+        std::vector<std::thread> threads;
+
+        auto begin = indexes.begin();
+        auto end = indexes.begin();
+        for (index_t i = 1; i < numberOfThreads; i++) {
+            begin = end;
+            end = begin + numberOfNodes;
+            threads.emplace_back([this, begin, end] {
+                this->runAlgorithmIteration(begin, end);
+            });
+        }
+        begin = end;
+        end = indexes.end();
+        runAlgorithmIteration(begin, end);
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
         indexes = std::vector<index_t>(temporaryIndexes.begin(), temporaryIndexes.end());
         temporaryIndexes.clear();
         updateBValues();
@@ -142,8 +164,7 @@ void Graph::runAlgorithmIteration(IndexesIterator begin, IndexesIterator end) {
             Node& candidate = getNode(candidateVectorIndex);
 
             if (candidate.getBValue() > 0) {
-
-                // lock candidate
+                std::unique_lock<std::mutex> candidateLock(candidate.getMutex());
                 if (candidate.needsMoreSuitors()) {
                     foundPartners++;
                     candidate.addSuitor(node, candidateWeight);
@@ -153,20 +174,17 @@ void Graph::runAlgorithmIteration(IndexesIterator begin, IndexesIterator end) {
                     if (nodeTuple > competitorTuple) {
                         index_t competitorVectorIndex = std::get<2>(competitorTuple);
                         Node& competitor = getNode(competitorVectorIndex);
-
-                        // make atomic
                         competitor.annulProposal();
                         candidate.removeWorstSuitor();
 
-                        // lock temporary indexes
-                        temporaryIndexes.insert(competitorVectorIndex);
-                        // unlock temporary indexes
-
+                        {
+                            std::unique_lock<std::mutex> temporaryIndexesLock(temporaryIndexesMutex);
+                            temporaryIndexes.insert(competitorVectorIndex);
+                        }
                         foundPartners++;
                         candidate.addSuitor(node, candidateWeight);
                     }
                 }
-                // unlock candidate
             }
 
             ++neighboursIterator;

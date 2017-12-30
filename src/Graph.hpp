@@ -23,8 +23,10 @@ public:
     void reset();
     weight_t getResults();
 
-    void runAlgorithm(method_t method);
+    void runAlgorithm(method_t method, thread_t numberOfThreads);
     void runAlgorithmIteration(IndexesIterator begin, IndexesIterator end);
+
+    std::mutex temporaryIndexesMutex;
 
     Node& getNode(index_t vectorIndex);
     index_t getSize() const;

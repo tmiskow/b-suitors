@@ -8,7 +8,8 @@
 Node::Node(Graph& graph, const index_t originalIndex, const index_t vectorIndex) :
     graph(graph),
     originalIndex(originalIndex),
-    vectorIndex(vectorIndex) {}
+    vectorIndex(vectorIndex)
+{}
 
 void Node::addNeighbour(Node& neighbour, const weight_t weight) {
     neighbours.emplace_back(weight, neighbour.getOriginalIndex(), neighbour.getVectorIndex());
@@ -132,7 +133,7 @@ Node::Node(Node&& other) noexcept :
     neighbours(std::move(other.neighbours)),
     suitors(std::move(other.suitors)),
     neighboursIterator(other.neighboursIterator),
-    mutexPointer(std::move(mutexPointer))
+    mutexPointer(std::move(other.mutexPointer))
 {}
 
 std::mutex& Node::getMutex() {

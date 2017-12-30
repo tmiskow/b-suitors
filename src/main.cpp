@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[]) {
     assert(argc == 4);
-    const unsigned int numberOfThreads = static_cast<unsigned int>(std::stoul(argv[1]));
+    const thread_t numberOfThreads = static_cast<thread_t>(std::stoul(argv[1]));
     const std::string filename = argv[2];
     const method_t bLimit = static_cast<method_t>(std::stoul(argv[3]));
 
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 //    std::cout << "Graph loading time: " << loadingDuration.count() << " seconds\n";
     auto algorithmStartTime = std::chrono::system_clock::now();
     for (method_t method = 0; method <= bLimit; ++method) {
-        graph.runAlgorithm(method);
+        graph.runAlgorithm(method, numberOfThreads);
         assert(graph.isValid());
         std::cout << graph.getResults() << '\n';
         graph.reset();
