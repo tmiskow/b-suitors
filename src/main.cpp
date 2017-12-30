@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     Graph graph(filename);
     auto loadingEndTime = std::chrono::system_clock::now();
     std::chrono::duration<double> loadingDuration = loadingEndTime - loadingStartTime;
-//    std::cout << "Graph loading time: " << loadingDuration.count() << " seconds\n";
+    std::cerr << "Graph loading time: " << loadingDuration.count() << " seconds\n";
     auto algorithmStartTime = std::chrono::system_clock::now();
     for (method_t method = 0; method <= bLimit; ++method) {
         graph.runAlgorithm(method, numberOfThreads);
@@ -26,6 +26,6 @@ int main(int argc, char* argv[]) {
 
     auto algorithmEndTime = std::chrono::system_clock::now();
     std::chrono::duration<double> algorithmDuration = algorithmEndTime - algorithmStartTime;
-//    std::cout << "Algorithm time: " << algorithmDuration.count() << " seconds\n";
+    std::cerr << "Algorithm time: " << algorithmDuration.count() << " seconds\n";
 
 }

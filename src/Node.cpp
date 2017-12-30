@@ -133,9 +133,19 @@ Node::Node(Node&& other) noexcept :
     neighbours(std::move(other.neighbours)),
     suitors(std::move(other.suitors)),
     neighboursIterator(other.neighboursIterator),
-    mutexPointer(std::move(other.mutexPointer))
+    atomicPointer(std::move(other.atomicPointer))
 {}
 
-std::mutex& Node::getMutex() {
-    return *mutexPointer;
+void Node::lock() {
+    std::atomic_flag& atomicFlag = *atomicPointer;
+    while (atomicFlag.test_and_set(std::memory_order_acquire)) {
+        // spin
+    }
 }
+
+void Node::unlock() {
+    std::atomic_flag& atomicFlag = *atomicPointer;
+    atomicFlag.clear(std::memory_order_release);
+}
+
+

@@ -165,27 +165,27 @@ void Graph::runAlgorithmIteration(IndexesIterator begin, IndexesIterator end) {
             std::tie(candidateWeight, candidateOriginalIndex, candidateVectorIndex) = candidateTuple;
             Node& candidate = getNode(candidateVectorIndex);
 
-            NodeTuple competitorTuple = candidate.getWorstSuitor();
-            NodeTuple nodeTuple = std::make_tuple(candidateWeight, node.getOriginalIndex(), node.getVectorIndex());
-
             if (candidate.getBValue() > 0) {
-                std::unique_lock<std::mutex> candidateLock(candidate.getMutex());
-                if (candidate.needsMoreSuitors()) {
-                    foundPartners++;
-                    candidate.addSuitor(node, candidateWeight);
-                } else {
-                    competitorTuple = candidate.getWorstSuitor();
-                    nodeTuple = std::make_tuple(candidateWeight, node.getOriginalIndex(), node.getVectorIndex());
-                    if (nodeTuple > competitorTuple) {
-                        index_t competitorVectorIndex = std::get<2>(competitorTuple);
-                        Node& competitor = getNode(competitorVectorIndex);
-                        competitor.annulProposal();
-                        candidate.removeWorstSuitor();
-                        localIndexes.insert(competitorVectorIndex);
+                candidate.lock();
+                {
+                    if (candidate.needsMoreSuitors()) {
                         foundPartners++;
                         candidate.addSuitor(node, candidateWeight);
+                    } else {
+                        const NodeTuple& competitorTuple = candidate.getWorstSuitor();
+                        NodeTuple nodeTuple = std::make_tuple(candidateWeight, node.getOriginalIndex(), node.getVectorIndex());
+                        if (nodeTuple > competitorTuple) {
+                            index_t competitorVectorIndex = std::get<2>(competitorTuple);
+                            Node& competitor = getNode(competitorVectorIndex);
+                            competitor.annulProposal();
+                            candidate.removeWorstSuitor();
+                            localIndexes.insert(competitorVectorIndex);
+                            foundPartners++;
+                            candidate.addSuitor(node, candidateWeight);
+                        }
                     }
                 }
+                candidate.unlock();
             }
 
             ++neighboursIterator;
@@ -193,9 +193,12 @@ void Graph::runAlgorithmIteration(IndexesIterator begin, IndexesIterator end) {
     }
 
     {
-        std::unique_lock<std::mutex> temporaryIndexesLock(temporaryIndexesMutex);
+        while (temporaryIndexesAtomicFlag.test_and_set(std::memory_order_acquire))  {
+            // spin
+        }
         for (index_t index : localIndexes) {
             temporaryIndexes.insert(index);
         }
+        temporaryIndexesAtomicFlag.clear(std::memory_order_release);
     }
 }

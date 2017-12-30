@@ -23,7 +23,7 @@ private:
     std::set<NodeTuple> suitors;
 
     std::vector<NodeTuple>::const_iterator neighboursIterator;
-    std::unique_ptr<std::mutex> mutexPointer{new std::mutex};
+    std::unique_ptr<std::atomic_flag> atomicPointer{new std::atomic_flag(ATOMIC_FLAG_INIT)};
 
 public:
     Node(Graph& graph, index_t originalIndex, index_t vectorIndex);
@@ -38,12 +38,13 @@ public:
     void annulProposal();
     void reset();
     weight_t getResult();
+    void lock();
+    void unlock();
 
     const index_t getOriginalIndex() const;
     const index_t getVectorIndex() const;
     index_t getBValue() const;
     std::vector<NodeTuple >::const_iterator& getNeighboursIterator();
-    std::mutex& getMutex();
     index_t getPossibleProposals() const;
     const std::vector<NodeTuple>& getNeighbours() const;
 

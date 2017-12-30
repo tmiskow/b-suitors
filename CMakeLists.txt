@@ -25,5 +25,6 @@ add_executable(junix_paper ${SOURCE_FILES} blimits/blimit-paper.cpp)
 add_executable(junix_youtube ${SOURCE_FILES} blimits/blimit-youtube.cpp)
 add_executable(junix_road_pa ${SOURCE_FILES} blimits/blimit-road_pa.cpp)
 add_executable(kacper ${SOURCE_FILES} blimits/blimit-kacper.cpp)
+add_executable(klika ${SOURCE_FILES} blimits/blimit-klika.cpp)
 
 install(TARGETS DESTINATION .)
