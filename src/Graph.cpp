@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iostream>
 #include "Graph.hpp"
+#include "blimit.hpp"
 
 Graph::Graph(const std::string& filename) {
     std::ifstream file;
@@ -68,4 +69,42 @@ void Graph::print() const {
 
 index_t Graph::getSize() const {
     return nodes.size();
+}
+
+void Graph::setBValues(method_t method) {
+    for (Node& node : nodes) {
+        index_t bValue = bvalue(method, node.getOriginalIndex());
+        node.setBValue(bValue);
+    }
+}
+
+void Graph::updateBValues() {
+    for (Node& node : nodes) {
+        node.updateBValue();
+    }
+}
+
+void Graph::reset() {
+    for (Node& node : nodes) {
+        node.reset();
+    }
+}
+
+weight_t Graph::getResults() {
+    weight_t sum = 0;
+    for (Node& node : nodes) {
+        sum += node.getResult();
+    }
+    return sum/2;
+}
+
+bool Graph::isValid() {
+    for (Node& node : nodes) {
+        for (const auto& suitorTuple : node.getSuitors()) {
+            Node& suitor = getNode(std::get<2>(suitorTuple));
+            if (suitor.hasSuitor(node.getOriginalIndex()));
+        }
+    }
+
+    return true;
 }

@@ -15,12 +15,17 @@ public:
 
     void addNode(index_t originalIndex, std::unordered_map<index_t, weight_t>& indexMap);
     void linkNodes(Node& node1, Node& node2, weight_t weight);
+    void setBValues(method_t method);
+    void updateBValues();
+    void reset();
+    weight_t getResults();
 
     Node& getNode(index_t vectorIndex);
     index_t getSize() const;
 
     // debug
     void print() const;
+    bool isValid();
 };
 
 
