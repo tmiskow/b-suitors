@@ -11,7 +11,6 @@ Node::Node(Graph& graph, const index_t originalIndex, const index_t vectorIndex)
     vectorIndex(vectorIndex) {}
 
 void Node::addNeighbour(Node& neighbour, const weight_t weight) {
-    // TODO: assert that neighbour isn't already in the neighbours vector
     neighbours.emplace_back(weight, neighbour.getOriginalIndex(), neighbour.getVectorIndex());
 }
 
@@ -121,4 +120,21 @@ bool Node::hasSuitor(index_t originalIndex) {
     }
 
     return false;
+}
+
+Node::Node(Node&& other) noexcept :
+    graph(other.graph),
+    originalIndex(other.originalIndex),
+    vectorIndex(other.vectorIndex),
+    bValue(other.bValue),
+    possibleProposals(other.possibleProposals),
+    annulledProposals(other.annulledProposals.load()),
+    neighbours(std::move(other.neighbours)),
+    suitors(std::move(other.suitors)),
+    neighboursIterator(other.neighboursIterator),
+    mutexPointer(std::move(mutexPointer))
+{}
+
+std::mutex& Node::getMutex() {
+    return *mutexPointer;
 }

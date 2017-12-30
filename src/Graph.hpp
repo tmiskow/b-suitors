@@ -10,6 +10,9 @@ class Graph {
 private:
     std::vector<Node> nodes;
 
+    IndexesQueue indexes;
+    TemporaryIndexesContainer temporaryIndexes;
+
 public:
     explicit Graph(const std::string& filename);
 
@@ -19,6 +22,9 @@ public:
     void updateBValues();
     void reset();
     weight_t getResults();
+
+    void runAlgorithm(method_t method);
+    void runAlgorithmIteration(IndexesIterator begin, IndexesIterator end);
 
     Node& getNode(index_t vectorIndex);
     index_t getSize() const;

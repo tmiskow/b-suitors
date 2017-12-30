@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cassert>
 #include <iostream>
+#include <unordered_set>
 #include "Graph.hpp"
 #include "blimit.hpp"
 
@@ -107,4 +108,68 @@ bool Graph::isValid() {
     }
 
     return true;
+}
+
+void Graph::runAlgorithm(method_t method) {
+    indexes.clear();
+    temporaryIndexes.clear();
+
+    for (index_t i = 0; i < getSize(); i++) {
+        indexes.push_back(i);
+    }
+
+    setBValues(method);
+    while (!indexes.empty()) {
+        runAlgorithmIteration(indexes.begin(), indexes.end());
+        indexes = std::vector<index_t>(temporaryIndexes.begin(), temporaryIndexes.end());
+        temporaryIndexes.clear();
+        updateBValues();
+    }
+}
+
+void Graph::runAlgorithmIteration(IndexesIterator begin, IndexesIterator end) {
+    for (auto indexIterator = begin; indexIterator != end; ++ indexIterator) {
+        Node& node = getNode(*indexIterator);
+        index_t foundPartners = 0;
+
+        auto& neighboursIterator = node.getNeighboursIterator();
+        while (foundPartners < node.getPossibleProposals() && neighboursIterator != node.getNeighbours().end()) {
+            weight_t candidateWeight;
+            index_t candidateOriginalIndex, candidateVectorIndex;
+
+            NodeTuple candidateTuple = *neighboursIterator;
+            std::tie(candidateWeight, candidateOriginalIndex, candidateVectorIndex) = candidateTuple;
+            Node& candidate = getNode(candidateVectorIndex);
+
+            if (candidate.getBValue() > 0) {
+
+                // lock candidate
+                if (candidate.needsMoreSuitors()) {
+                    foundPartners++;
+                    candidate.addSuitor(node, candidateWeight);
+                } else {
+                    NodeTuple competitorTuple = candidate.getWorstSuitor();
+                    NodeTuple nodeTuple = std::make_tuple(candidateWeight, node.getOriginalIndex(), node.getVectorIndex());
+                    if (nodeTuple > competitorTuple) {
+                        index_t competitorVectorIndex = std::get<2>(competitorTuple);
+                        Node& competitor = getNode(competitorVectorIndex);
+
+                        // make atomic
+                        competitor.annulProposal();
+                        candidate.removeWorstSuitor();
+
+                        // lock temporary indexes
+                        temporaryIndexes.insert(competitorVectorIndex);
+                        // unlock temporary indexes
+
+                        foundPartners++;
+                        candidate.addSuitor(node, candidateWeight);
+                    }
+                }
+                // unlock candidate
+            }
+
+            ++neighboursIterator;
+        }
+    }
 }
