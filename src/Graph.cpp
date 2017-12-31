@@ -5,6 +5,7 @@
 #include <iostream>
 #include <unordered_set>
 #include <thread>
+#include <cmath>
 #include "Graph.hpp"
 #include "blimit.hpp"
 
@@ -121,14 +122,14 @@ void Graph::runAlgorithm(method_t method, thread_t possibleThreads) {
 
     setBValues(method);
     while (!indexes.empty()) {
-        thread_t numberOfThreads = std::min(possibleThreads, indexes.size());
+        thread_t numberOfThreads = std::min(possibleThreads, static_cast<thread_t>(std::ceil((double)indexes.size() / 4)));
         index_t numberOfNodes = indexes.size() / numberOfThreads;
 
         std::vector<std::thread> threads;
 
         auto begin = indexes.begin();
         auto end = indexes.begin();
-        for (index_t i = 1; i < numberOfThreads; i++) {
+        for (index_t i = 0; i < numberOfThreads - 1; i++) {
             begin = end;
             end = begin + numberOfNodes;
             threads.emplace_back([this, begin, end] {
