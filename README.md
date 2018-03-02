@@ -17,26 +17,29 @@ From the abstract:
 
 **Input:** A graph G = (V, E, w) and a vector b.  **Output:** A 1/2−approximate edge weighted b-Matching M.
 
-    procedure Parallel b-Suitor(G, b):
-      Q = V ; Q'= {}; 
-      while !Q.empty() do:
-        for all vertices u in Q in parallel do:
-          i = 1;
-          while i <= b(u) and N(u) != exhausted do:
-            Let p in N(u) be an eligible partner of u;
-            if p != NULL then:
-              Lock p; 
-              if p is still eligible then:
-                i = i + 1; 
-                Make u a Suitor of p;
-                if u annuls the proposal of a vertex v then:
-                  Add v to Q';
-                  Update db(v); 
-              Unlock p; 
-            else:
-              N(u) = exhausted; 
-        Update Q using Q';
-        Update b using db;
+```python
+procedure Parallel b-Suitor(G, b):
+  Q = V ; Q'= {}; 
+  while Q is not empty:
+    for all vertices u in Q in parallel:
+      i = 1;
+      while i <= b(u) and N(u) != exhausted:
+        Let p in N(u) be an eligible partner of u;
+        if p != NULL:
+          Lock p; 
+          if p is still eligible:
+            i = i + 1; 
+            Make u a Suitor of p;
+            if u annuls the proposal of a vertex v:
+              Add v to Q';
+              Update db(v); 
+          Unlock p; 
+        else:
+          N(u) = exhausted; 
+    Update Q using Q';
+    Update b using db;
+```
+
 ## Performance tests
 
 **Graph:** Pennsylvania road network (http://snap.stanford.edu/data/roadNet-PA.html) 
